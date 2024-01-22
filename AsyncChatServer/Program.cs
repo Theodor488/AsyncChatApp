@@ -22,6 +22,7 @@ while (true)
     var response = Encoding.UTF8.GetString(buffer, 0, received);
 
     var eom = "<|EOM|>";
+
     if (response.IndexOf(eom) > -1 /* is end of message */)
     {
         Console.WriteLine(
@@ -39,9 +40,10 @@ while (true)
         Console.WriteLine(
             $"Socket server sent acknowledgment: \"{ackMessage}\"");
 
-        break;
+        if (response.Contains("/exit"))
+        {
+            break;
+        }
+
     }
-    // Sample output:
-    //    Socket server received message: "Hi friends 👋!"
-    //    Socket server sent acknowledgment: "<|ACK|>"
 }

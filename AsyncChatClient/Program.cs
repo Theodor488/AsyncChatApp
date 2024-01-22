@@ -11,15 +11,39 @@ using Socket client = new(
     ProtocolType.Tcp);
 
 await client.ConnectAsync(ipEndPoint);
+
+// Send message. (Initialize Connection)
+await SendMessage(client, "Initializing connection (client side).<|EOM|>");
+
+// Receive ack.
+await ReceiveAck(client);
+
+// User send messages
 while (true)
 {
-    // Send message.
-    var message = "Hi friends!<|EOM|>";
+    Console.WriteLine("Client: ");
+    var userMessage = Console.ReadLine();
+    userMessage += "<|EOM|>";
+    await SendMessage(client, userMessage);
+    await ReceiveAck(client);
+
+    if (userMessage.Contains("exit"))
+    {
+        break;
+    }
+}
+
+client.Shutdown(SocketShutdown.Both);
+
+static async Task SendMessage(Socket client, string message)
+{
     var messageBytes = Encoding.UTF8.GetBytes(message);
     _ = await client.SendAsync(messageBytes, SocketFlags.None);
     Console.WriteLine($"Socket client sent message: \"{message}\"");
+}
 
-    // Receive ack.
+static async Task ReceiveAck(Socket client)
+{
     var buffer = new byte[1_024];
     var received = await client.ReceiveAsync(buffer, SocketFlags.None);
     var response = Encoding.UTF8.GetString(buffer, 0, received);
@@ -27,11 +51,5 @@ while (true)
     {
         Console.WriteLine(
             $"Socket client received acknowledgment: \"{response}\"");
-        break;
     }
-    // Sample output:
-    //     Socket client sent message: "Hi friends 👋!<|EOM|>"
-    //     Socket client received acknowledgment: "<|ACK|>"
 }
-
-client.Shutdown(SocketShutdown.Both);
