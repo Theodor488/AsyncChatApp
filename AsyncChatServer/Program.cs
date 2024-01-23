@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Net;
 using System.Text;
+using AsyncChatServer;
 
 IPAddress ipAddress = IPAddress.Loopback;
 IPEndPoint ipEndPoint = new(ipAddress, 8080);
@@ -13,13 +14,18 @@ using Socket listener = new(
 listener.Bind(ipEndPoint);
 listener.Listen(100);
 
+List<ChatClient> clients = new List<ChatClient>();
 var handler = await listener.AcceptAsync();
+
+Socket socket = listener;
+string id = "client0";
+ChatClient client = new ChatClient(socket, id);
+clients.Add(client);
+
 while (true)
 {
     // Receive message.
-    var buffer = new byte[1_024];
-    var received = await handler.ReceiveAsync(buffer, SocketFlags.None);
-    var response = Encoding.UTF8.GetString(buffer, 0, received);
+    string response = await ReceiveMessage(handler);
 
     var eom = "<|EOM|>";
 
@@ -29,21 +35,20 @@ while (true)
             $"Socket server received message: \"{response.Replace(eom, "")}\"");
 
         var ackMessage = "<|ACK|>";
-
-        if (response.Contains("Hi"))
-        {
-            ackMessage = $"Hi client! {ackMessage}";
-        }
-
         var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
         await handler.SendAsync(echoBytes, 0);
-        Console.WriteLine(
-            $"Socket server sent acknowledgment: \"{ackMessage}\"");
 
         if (response.Contains("/exit"))
         {
             break;
         }
-
     }
+}
+
+static async Task<string> ReceiveMessage(Socket handler)
+{
+    var buffer = new byte[1_024];
+    var received = await handler.ReceiveAsync(buffer, SocketFlags.None);
+    var response = Encoding.UTF8.GetString(buffer, 0, received);
+    return response;
 }
