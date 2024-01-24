@@ -16,7 +16,7 @@ listener.Listen(100);
 
 List<ChatClient> clients = new List<ChatClient>();
 var handler = await listener.AcceptAsync();
-
+ 
 Socket socket = listener;
 string id = "client0";
 ChatClient client = new ChatClient(socket, id);
