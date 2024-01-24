@@ -14,19 +14,21 @@ using Socket listener = new(
 listener.Bind(ipEndPoint);
 listener.Listen(100);
 
+// new client connection
+Socket newClientSocket = await listener.AcceptAsync();
+
+// List of chat clients
 List<ChatClient> clients = new List<ChatClient>();
-var handler = await listener.AcceptAsync();
- 
-Socket socket = listener;
-string id = "client0";
-ChatClient client = new ChatClient(socket, id);
+int lstLength = clients.Count;
+string clientId = $"client{lstLength}";
+
+ChatClient client = new ChatClient(newClientSocket, clientId);
 clients.Add(client);
 
 while (true)
 {
     // Receive message.
-    string response = await ReceiveMessage(handler);
-
+    string response = await ReceiveMessage(newClientSocket);
     var eom = "<|EOM|>";
 
     if (response.IndexOf(eom) > -1 /* is end of message */)
@@ -36,7 +38,7 @@ while (true)
 
         var ackMessage = "<|ACK|>";
         var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
-        await handler.SendAsync(echoBytes, 0);
+        await newClientSocket.SendAsync(echoBytes, 0);
 
         if (response.Contains("/exit"))
         {
