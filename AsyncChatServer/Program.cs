@@ -14,37 +14,47 @@ using Socket listener = new(
 listener.Bind(ipEndPoint);
 listener.Listen(100);
 
-// new client connection
-Socket newClientSocket = await listener.AcceptAsync();
-
 // List of chat clients
 List<ChatClient> clients = new List<ChatClient>();
-int lstLength = clients.Count;
-string clientId = $"client{lstLength}";
 
-ChatClient client = new ChatClient(newClientSocket, clientId);
-clients.Add(client);
-
-while (true)
+async Task HandleClient(Socket newClientSocket)
 {
-    // Receive message.
-    string response = await ReceiveMessage(newClientSocket);
-    var eom = "<|EOM|>";
+    int lstLength = clients.Count;
+    string clientId = $"client{lstLength}";
 
-    if (response.IndexOf(eom) > -1 /* is end of message */)
+    ChatClient client = new ChatClient(newClientSocket, clientId);
+    clients.Add(client);
+
+    while (true)
     {
-        Console.WriteLine(
-            $"Socket server received message: \"{response.Replace(eom, "")}\"");
+        // Receive message.
+        string response = await ReceiveMessage(newClientSocket);
+        var eom = "<|EOM|>";
 
-        var ackMessage = "<|ACK|>";
-        var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
-        await newClientSocket.SendAsync(echoBytes, 0);
+        if (response.IndexOf(eom) > -1 /* is end of message */)
+        {
+            Console.WriteLine(
+                $"{client.Id}: \"{response.Replace(eom, "")}\"");
+            
+            var ackMessage = "<|ACK|>";
+            var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
+            await newClientSocket.SendAsync(echoBytes, 0);
+        }
 
         if (response.Contains("/exit"))
         {
             break;
         }
     }
+}
+
+while (true)
+{
+    // Accept a new client connection
+    Socket newClientSocket = await listener.AcceptAsync();
+
+    // Create a new task to handle the client
+    Task.Run(() => HandleClient(newClientSocket));
 }
 
 static async Task<string> ReceiveMessage(Socket handler)

@@ -16,7 +16,7 @@ await client.ConnectAsync(ipEndPoint);
 Console.WriteLine("Chat Application. Type \"/exit\" to exit.");
 
 // Send message. (Initialize Connection)
-await SendMessage(client, $"Initializing connection (client side).{eom}");
+await SendMessage(client, $"Has entered the chat.{eom}");
 
 // Receive ack.
 await ReceiveAck(client);
