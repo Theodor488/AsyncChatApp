@@ -33,12 +33,28 @@ async Task HandleClient(Socket newClientSocket)
 
         if (response.IndexOf(eom) > -1 /* is end of message */)
         {
-            Console.WriteLine(
-                $"{client.Id}: \"{response.Replace(eom, "")}\"");
-            
+            string clientMessage = $"{client.Id}: \"{response.Replace(eom, "")}\"";
+            Console.WriteLine(clientMessage);
+
             var ackMessage = "<|ACK|>";
             var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
-            await newClientSocket.SendAsync(echoBytes, 0);
+            var clientIdBytes = Encoding.UTF8.GetBytes(clientId);
+            var clientMessageBytes = Encoding.UTF8.GetBytes(clientMessage);
+            //await newClientSocket.SendAsync(echoBytes, 0);
+
+            foreach (ChatClient chatClient in clients)
+            {
+                // Ensure chatClient is not client that originally sent most recent msg to avoid echo
+                if (chatClient.Id != clientId)
+                {
+                    await chatClient.ClientSocket.SendAsync(clientIdBytes, 0);
+                    await chatClient.ClientSocket.SendAsync(clientMessageBytes, 0);
+                }
+                else
+                {
+                    await chatClient.ClientSocket.SendAsync(clientIdBytes, 0);
+                }
+            }      
         }
 
         if (response.Contains("/exit"))
