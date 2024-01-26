@@ -41,7 +41,7 @@ static async Task SendMessage(Socket client, string message)
 {
     var messageBytes = Encoding.UTF8.GetBytes(message);
     _ = await client.SendAsync(messageBytes, SocketFlags.None);
-    //Console.WriteLine($"Socket client sent message: \"{message.Replace("<|EOM|>", "")}\"");
+    Console.WriteLine($"Socket client sent message: \"{message.Replace("<|EOM|>", "")}\"");
 }
 
 static async Task ReceiveMessage(Socket client)
