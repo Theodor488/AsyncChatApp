@@ -44,14 +44,6 @@ static async Task SendMessage(Socket client, string message)
     Console.WriteLine($"Socket client sent message: \"{message.Replace("<|EOM|>", "")}\"");
 }
 
-static async Task ReceiveMessage(Socket client)
-{
-    var buffer = new byte[1_024];
-    var received = await client.ReceiveAsync(buffer, SocketFlags.None);
-    var response = Encoding.UTF8.GetString(buffer, 0, received);
-    Console.WriteLine(response);
-}
-
 static async Task<string?> HandleUserInput(string eom, Socket client, ConnectionStateStatus connectionState)
 {
     Console.WriteLine("Client: ");
@@ -65,4 +57,28 @@ static async Task<string?> HandleUserInput(string eom, Socket client, Connection
     }
 
     return userMessage;
+}
+
+static async Task ContinuousReceive(Socket client)
+{
+    try
+    {
+        while (true)
+        {
+            var response = await ReceiveMessage(client);
+            Console.WriteLine(response);
+        }
+    }
+    catch (Exception ex) 
+    {
+        Console.WriteLine("Error in receiving data: " + ex.ToString());
+    }
+}
+
+static async Task<string> ReceiveMessage(Socket client)
+{
+    var buffer = new byte[1_024];
+    var received = await client.ReceiveAsync(buffer, SocketFlags.None);
+    var response = Encoding.UTF8.GetString(buffer, 0, received);
+    return response;
 }
