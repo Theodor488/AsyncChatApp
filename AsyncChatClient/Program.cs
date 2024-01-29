@@ -14,23 +14,24 @@ using Socket client = new(
     SocketType.Stream,
     ProtocolType.Tcp);
 
+// Initialize Connection. (Send and Receive Ack message)
 await client.ConnectAsync(ipEndPoint);
-
-Console.WriteLine("Chat Application. Type \"/exit\" to exit.");
-
-// Send message. (Initialize Connection)
 await SendMessage(client, $"Has entered the chat.{eom}");
-
-// Receive ack / Message.
 await ReceiveMessage(client);
 
-// User send messages
+Console.WriteLine("Chat Application. Type \"/exit\" to exit.");
+Console.WriteLine($"Client: ");
+
 while (true)
 {
-    var receiveTask = ReceiveMessage(client);
-    var sendTask = HandleUserInput(eom, client, connectionState);
+    // Start Receiving messages continuously
+    var receiveTask = ContinuousReceive(client);
 
-    await Task.WhenAny(receiveTask, sendTask);
+    // Handle user input concurrently
+    var userInputTask = HandleUserInput(eom, client, connectionState);
+
+    // Wait for either receiveTask or userInputTask to complete
+    await Task.WhenAny(receiveTask, userInputTask);
 
     if (connectionState.EndConnection == true) break;
 }
@@ -41,12 +42,12 @@ static async Task SendMessage(Socket client, string message)
 {
     var messageBytes = Encoding.UTF8.GetBytes(message);
     _ = await client.SendAsync(messageBytes, SocketFlags.None);
-    Console.WriteLine($"Socket client sent message: \"{message.Replace("<|EOM|>", "")}\"");
+    //Console.WriteLine($"Socket client sent message: \"{message.Replace("<|EOM|>", "")}\"");
 }
 
 static async Task<string?> HandleUserInput(string eom, Socket client, ConnectionStateStatus connectionState)
 {
-    Console.WriteLine("Client: ");
+    //Console.WriteLine($"Client: ");
     var userMessage = Console.ReadLine();
     userMessage += eom;
     await SendMessage(client, userMessage);

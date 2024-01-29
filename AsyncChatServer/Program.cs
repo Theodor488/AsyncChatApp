@@ -20,7 +20,7 @@ List<ChatClient> clients = new List<ChatClient>();
 async Task HandleClient(Socket newClientSocket)
 {
     int lstLength = clients.Count;
-    string clientId = $"client{lstLength}";
+    string clientId = $"Client{lstLength}";
 
     ChatClient client = new ChatClient(newClientSocket, clientId);
     clients.Add(client);
@@ -40,6 +40,8 @@ async Task HandleClient(Socket newClientSocket)
             var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
             var clientIdBytes = Encoding.UTF8.GetBytes(clientId);
             var clientMessageBytes = Encoding.UTF8.GetBytes(clientMessage);
+            var blankBytes = Encoding.UTF8.GetBytes($"{clientId}: ");
+
             //await newClientSocket.SendAsync(echoBytes, 0);
 
             foreach (ChatClient chatClient in clients)
@@ -47,12 +49,12 @@ async Task HandleClient(Socket newClientSocket)
                 // Ensure chatClient is not client that originally sent most recent msg to avoid echo
                 if (chatClient.Id != clientId)
                 {
-                    await chatClient.ClientSocket.SendAsync(clientIdBytes, 0);
+                    //await chatClient.ClientSocket.SendAsync(clientIdBytes, 0);
                     await chatClient.ClientSocket.SendAsync(clientMessageBytes, 0);
                 }
                 else
                 {
-                    await chatClient.ClientSocket.SendAsync(clientIdBytes, 0);
+                    await chatClient.ClientSocket.SendAsync(blankBytes, 0);
                 }
             }      
         }
