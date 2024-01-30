@@ -8,6 +8,7 @@ IPAddress ipAddress = IPAddress.Loopback;
 IPEndPoint ipEndPoint = new(ipAddress, 8080);
 string eom = "<|EOM|>";
 ConnectionStateStatus connectionState = new ConnectionStateStatus();
+string clientId = "";
 
 using Socket client = new(
     ipEndPoint.AddressFamily,
@@ -17,10 +18,17 @@ using Socket client = new(
 // Initialize Connection. (Send and Receive Ack message)
 await client.ConnectAsync(ipEndPoint);
 await SendMessage(client, $"Has entered the chat.{eom}");
-await ReceiveMessage(client);
+
+string receivedMessage = await ReceiveMessage(client);
+
+// if receivedMessage is ID then assign client's ID
+if (receivedMessage.Contains("ID:"))
+{
+    clientId = receivedMessage.Substring(3);
+}
 
 Console.WriteLine("Chat Application. Type \"/exit\" to exit.");
-Console.WriteLine($"Client: ");
+Console.WriteLine($"Client{clientId}: ");
 
 while (true)
 {
@@ -47,7 +55,7 @@ static async Task SendMessage(Socket client, string message)
 
 static async Task<string?> HandleUserInput(string eom, Socket client, ConnectionStateStatus connectionState)
 {
-    //Console.WriteLine($"Client: ");
+    //Console.WriteLine($"Client123: ");
     var userMessage = Console.ReadLine();
     userMessage += eom;
     await SendMessage(client, userMessage);
