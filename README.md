@@ -25,7 +25,3 @@ This project is an asynchronous chat application implemented in C#. It features 
 - This application is for demonstration purposes and does not include advanced features like encryption, authentication, or persistent chat history.
 - The server listens on `localhost:8080`.
 
-## Future Improvements
-- Implement user authentication.
-- Add chat rooms and private messaging.
-- Include message encryption for security.
