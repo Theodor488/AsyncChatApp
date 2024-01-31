@@ -1,6 +1,7 @@
 ## Description
 This project is an asynchronous chat application implemented in C#. It features a server capable of handling multiple client connections simultaneously, using TCP sockets for communication.
 
+Example:
 ![image](https://github.com/Theodor488/AsyncChatApp/assets/52685513/c373621b-142d-4b02-8525-c92b0908d2f1)
 
 
